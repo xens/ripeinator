@@ -249,6 +249,8 @@ if __name__ == '__main__':
                 print("no password specified")
                 if not args.dryrun:
                     sys.exit(1)
+        else:
+            pwd = args.pwd
 
         yml_objects = yaml_parser(args.objects)
         for key in yml_objects.keys():
@@ -275,7 +277,7 @@ if __name__ == '__main__':
             if answer == 1:
                 print("  Object does not exists in the RIPE database")
                 json_output = yaml_to_json(yml_objects[key])
-                ripe_create(args.db, pwd, json_output, key, type, args.dryrun, yml_objects[key])
+                ripe_create(args.db, pwd, json_output, key, type, args.dryrun)
 
 
     if args.search:
