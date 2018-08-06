@@ -46,7 +46,7 @@ def ripe_update(db, pwd, json_output, key, type, dryrun, object_entries):
     """
     Update exsting RIPE object on the RIPE database
     """
-    if type == "route6":
+    if type == "route" or type == "route6":
         for i in object_entries:
             if i.keys()[0] == "origin":
                 key = "%s%s" % (key, i['origin'])
