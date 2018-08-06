@@ -13,7 +13,7 @@ def ripe_create(db, pwd, json_output, key, type, dryrun):
     """
     Create non-existing RIPE object
     """
-    if type == "route6":
+    if type == "route" or type == "route6":
         for i in object_entries:
             if i.keys()[0] == "origin":
                 key = "%s%s" % (key, i['origin'])
@@ -31,7 +31,7 @@ def ripe_get(db, type, object, object_entries):
     """
     Get RIPE objects from the RIPE database
     """
-    if type == "route6":
+    if type == "route" or type == "route6":
         for i in object_entries:
             if i.keys()[0] == "origin":
                 object = "%s%s" % (object, i['origin'])
