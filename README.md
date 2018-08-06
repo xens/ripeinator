@@ -30,7 +30,7 @@ $ ripe.py --db https://rest.db.ripe.net --search maintainer_name --attribute mnt
 
 or
 
-```
+```console
 $ ripe.py --db https://rest.db.ripe.net --search org_name --attribute org
 ```
 
