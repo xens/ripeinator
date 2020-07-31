@@ -9,7 +9,7 @@ import sys
 import yaml
 
 
-def ripe_create(db, pwd, json_output, key, type, dryrun):
+def ripe_create(db, pwd, json_output, key, type, dryrun, object_entries):
     """
     Create non-existing RIPE object
     """
@@ -23,7 +23,7 @@ def ripe_create(db, pwd, json_output, key, type, dryrun):
                 "Accept": "application/json; charset=utf-8"
               }
     r=requests.post(url, data=json_output, headers=headers)
-
+    #print (r.text)
     eval_write_answer(r.status_code, r.text, dryrun)
 
 
@@ -161,9 +161,15 @@ def eval_write_answer(status_code, text, dryrun):
     """
     if dryrun:
         try:
-            print("  RIPE answer: %s" % json.loads(text)['errormessages']['errormessage'][0]['text'])
+            exists =  json.loads(text)['errormessages']['errormessage'][0]['text']
         except:
             print("  RIPE answer: %s" % text)
+        else:
+            info = json.loads(text)['errormessages']['errormessage']
+            for item in info:
+                print (item['text'])
+                if 'args' in item:
+                    print (item['args'][0]['value'])
 
     else:
         if status_code == 200:
@@ -256,7 +262,8 @@ if __name__ == '__main__':
         for key in yml_objects.keys():
             type = yml_objects[key][0].keys()[0]
             name = key
-            print(key)
+            print('')
+            print(type,key)
             ripe_object = ripe_get(args.db, type, name, yml_objects[key])
             answer = eval_search(ripe_object, type, name)
             if answer == 0:
@@ -275,9 +282,9 @@ if __name__ == '__main__':
                     ripe_update(args.db, pwd, json_output, key, type, args.dryrun, yml_objects[key])
 
             if answer == 1:
-                print("  Object does not exists in the RIPE database")
+                print("Object does not exists in the RIPE database")
                 json_output = yaml_to_json(yml_objects[key])
-                ripe_create(args.db, pwd, json_output, key, type, args.dryrun)
+                ripe_create(args.db, pwd, json_output, key, type, args.dryrun, yml_objects[key])
 
 
     if args.search:
