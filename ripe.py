@@ -105,7 +105,7 @@ def object_comparator_strict(src_obj, dst_obj):
     """
     Compare an object with another entry by entry
     """
-    for i in xrange(len(dst_obj)):
+    for i in range(len(dst_obj)):
         if list(dst_obj[i].keys())[0] == "last-modified":
             del dst_obj[i]
             break
