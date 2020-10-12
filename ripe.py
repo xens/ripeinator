@@ -15,7 +15,7 @@ def ripe_create(db, pwd, json_output, key, type, dryrun, object_entries):
     """
     if type == "route" or type == "route6":
         for i in object_entries:
-            if i.keys()[0] == "origin":
+            if list(i.keys())[0] == "origin":
                 key = "%s%s" % (key, i['origin'])
 
     url="https://rest.db.ripe.net/ripe/%s?password=%s&dry-run=%s" % (type, pwd, dryrun)
@@ -33,7 +33,7 @@ def ripe_get(db, type, object, object_entries):
     """
     if type == "route" or type == "route6":
         for i in object_entries:
-            if i.keys()[0] == "origin":
+            if list(i.keys())[0] == "origin":
                 object = "%s%s" % (object, i['origin'])
     url = "%s/ripe/%s/%s?unfiltered" % (db, type, object)
     headers = {'Accept': 'application/json'}
@@ -48,7 +48,7 @@ def ripe_update(db, pwd, json_output, key, type, dryrun, object_entries):
     """
     if type == "route" or type == "route6":
         for i in object_entries:
-            if i.keys()[0] == "origin":
+            if list(i.keys())[0] == "origin":
                 key = "%s%s" % (key, i['origin'])
 
     url="https://rest.db.ripe.net/ripe/%s/%s?password=%s&dry-run=%s" % (type, key, pwd, dryrun)
@@ -82,14 +82,14 @@ def object_comparator_lookup(src_obj, dst_obj):
         count_name = 0
         count_value = 0
         for j in src_obj:
-            if j.keys()[0] == i.keys()[0]:
+            if list(j.keys())[0] == list(i.keys())[0]:
                 count_name = 1
-                if j[j.keys()[0]] == i[i.keys()[0]]:
+                if j[list(j.keys())[0]] == i[list(i.keys())[0]]:
                     count_value = 1
 
         if count_name == 0:
-            if i.keys()[0] != "last-modified":
-                print(i.keys(), i.keys()[0])
+            if list(i.keys())[0] != "last-modified":
+                print(i.keys(), list(i.keys())[0])
                 no_upstream.append(i)
         else:
             if count_value ==  0:
@@ -106,7 +106,7 @@ def object_comparator_strict(src_obj, dst_obj):
     Compare an object with another entry by entry
     """
     for i in xrange(len(dst_obj)):
-        if dst_obj[i].keys()[0] == "last-modified":
+        if list(dst_obj[i].keys())[0] == "last-modified":
             del dst_obj[i]
             break
     dont_match = []
@@ -116,8 +116,8 @@ def object_comparator_strict(src_obj, dst_obj):
 
     if len(src_obj) == len(dst_obj):
         for i in  src_obj:
-            if i.keys()[0] == dst_obj[count].keys()[0]:
-                if i[i.keys()[0]] != dst_obj[count][dst_obj[count].keys()[0]]:
+            if list(i.keys())[0] == list(dst_obj[count].keys())[0]:
+                if i[list(i.keys())[0]] != dst_obj[count][list(dst_obj[count].keys())[0]]:
                     failed_values += 1
             else:
                 failed_keys += 1
@@ -198,8 +198,8 @@ def yaml_to_json(yml_object):
 
     for i in yml_object:
         construct['objects']['object'][0]['attributes'][
-            'attribute'].append({'name': i.keys()[0],
-                                    'value': i[i.keys()[0]]})
+            'attribute'].append({'name': list(i.keys())[0],
+                                    'value': i[list(i.keys())[0]]})
     return json.dumps(construct)
 
 
@@ -260,7 +260,7 @@ if __name__ == '__main__':
 
         yml_objects = yaml_parser(args.objects)
         for key in yml_objects.keys():
-            type = yml_objects[key][0].keys()[0]
+            type = list(yml_objects[key][0].keys())[0]
             name = key
             print('')
             print(type,key)
