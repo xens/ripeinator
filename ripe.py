@@ -136,7 +136,7 @@ def yaml_parser(objects):
     TODO
     """
     a = open(objects, "r")
-    objects = yaml.load(a.read())
+    objects = yaml.full_load(a.read())
     return objects
 
 
@@ -218,7 +218,7 @@ def json_to_yaml(json_payload):
                     j['value']
                 })
     yaml_out = yaml.dump(
-        yaml.load(json.dumps(objects)), default_flow_style=False)
+        yaml.full_load(json.dumps(objects)), default_flow_style=False)
     return yaml_out
 
 
