@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import argparse
 import json
@@ -16,14 +17,19 @@ def ripe_create(db, pwd, json_output, key, type, dryrun, object_entries):
     if type == "route" or type == "route6":
         for i in object_entries:
             if list(i.keys())[0] == "origin":
-                key = "%s%s" % (key, i['origin'])
+                key = "%s%s" % (key, i["origin"])
 
-    url="https://rest.db.ripe.net/ripe/%s?password=%s&dry-run=%s" % (type, pwd, dryrun)
-    headers = { "Content-Type": "application/json",
-                "Accept": "application/json; charset=utf-8"
-              }
-    r=requests.post(url, data=json_output, headers=headers)
-    #print (r.text)
+    url = "https://rest.db.ripe.net/ripe/%s?password=%s&dry-run=%s" % (
+        type,
+        pwd,
+        dryrun,
+    )
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json; charset=utf-8",
+    }
+    r = requests.post(url, data=json_output, headers=headers)
+    # print (r.text)
     eval_write_answer(r.status_code, r.text, dryrun)
 
 
@@ -34,9 +40,9 @@ def ripe_get(db, type, object, object_entries):
     if type == "route" or type == "route6":
         for i in object_entries:
             if list(i.keys())[0] == "origin":
-                object = "%s%s" % (object, i['origin'])
+                object = "%s%s" % (object, i["origin"])
     url = "%s/ripe/%s/%s?unfiltered" % (db, type, object)
-    headers = {'Accept': 'application/json'}
+    headers = {"Accept": "application/json"}
     r = requests.get(url, headers=headers)
     output = json.loads(r.text)
     return output
@@ -49,13 +55,19 @@ def ripe_update(db, pwd, json_output, key, type, dryrun, object_entries):
     if type == "route" or type == "route6":
         for i in object_entries:
             if list(i.keys())[0] == "origin":
-                key = "%s%s" % (key, i['origin'])
+                key = "%s%s" % (key, i["origin"])
 
-    url="https://rest.db.ripe.net/ripe/%s/%s?password=%s&dry-run=%s" % (type, key, pwd, dryrun)
-    headers = { "Content-Type": "application/json",
-                "Accept": "application/json; charset=utf-8"
-              }
-    r=requests.put(url, data=json_output, headers=headers)
+    url = "https://rest.db.ripe.net/ripe/%s/%s?password=%s&dry-run=%s" % (
+        type,
+        key,
+        pwd,
+        dryrun,
+    )
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json; charset=utf-8",
+    }
+    r = requests.put(url, data=json_output, headers=headers)
     eval_write_answer(r.status_code, r.text, dryrun)
 
 
@@ -64,9 +76,11 @@ def ripe_search(db, attribute, string):
     Search object in the RIPE database
     """
 
-    url = "%s/search?inverse-attribute=%s&source=ripe&query-string=%s&flags=no-filtering" % (
-        db, attribute, string)
-    headers = {'Accept': 'application/json'}
+    url = (
+        "%s/search?inverse-attribute=%s&source=ripe&query-string=%s&flags=no-filtering"
+        % (db, attribute, string)
+    )
+    headers = {"Accept": "application/json"}
     r = requests.get(url, headers=headers)
     output = json.loads(r.text)
     return output
@@ -92,7 +106,7 @@ def object_comparator_lookup(src_obj, dst_obj):
                 print(i.keys(), list(i.keys())[0])
                 no_upstream.append(i)
         else:
-            if count_value ==  0:
+            if count_value == 0:
                 dont_match.append(i)
 
     if no_upstream or dont_match:
@@ -115,9 +129,12 @@ def object_comparator_strict(src_obj, dst_obj):
     count = 0
 
     if len(src_obj) == len(dst_obj):
-        for i in  src_obj:
+        for i in src_obj:
             if list(i.keys())[0] == list(dst_obj[count].keys())[0]:
-                if i[list(i.keys())[0]] != dst_obj[count][list(dst_obj[count].keys())[0]]:
+                if (
+                    i[list(i.keys())[0]]
+                    != dst_obj[count][list(dst_obj[count].keys())[0]]
+                ):
                     failed_values += 1
             else:
                 failed_keys += 1
@@ -144,10 +161,10 @@ def eval_search(ripe_object, name, value):
     """
     Evaluate RIPE answer when searching objects
     """
-    #print(ripe_object)
+    # print(ripe_object)
     try:
-        error = ripe_object['errormessages']['errormessage'][0]['text']
-        if error.find('101'):
+        error = ripe_object["errormessages"]["errormessage"][0]["text"]
+        if error.find("101"):
             return 1
         else:
             return 2
@@ -161,21 +178,21 @@ def eval_write_answer(status_code, text, dryrun):
     """
     if dryrun:
         try:
-            exists =  json.loads(text)['errormessages']['errormessage'][0]['text']
+            exists = json.loads(text)["errormessages"]["errormessage"][0]["text"]
         except:
             print("  RIPE answer: %s" % text)
         else:
-            info = json.loads(text)['errormessages']['errormessage']
+            info = json.loads(text)["errormessages"]["errormessage"]
             for item in info:
-                print (item['text'])
-                if 'args' in item:
-                    print (item['args'][0]['value'])
+                print(item["text"])
+                if "args" in item:
+                    print(item["args"][0]["value"])
 
     else:
         if status_code == 200:
             print("  RIPE answer: upstream object written")
         else:
-            output = json.loads(text)['errormessages']['errormessage'][0]['text']
+            output = json.loads(text)["errormessages"]["errormessage"][0]["text"]
             print("  RIPE answer: %s" % output)
 
 
@@ -184,22 +201,15 @@ def yaml_to_json(yml_object):
     Re-create RIPE json format from yaml
     """
     construct = {
-        'objects': {
-            'object': [{
-                'source': {
-                    'id': 'RIPE'
-                },
-                'attributes': {
-                    'attribute': []
-                }
-            }]
+        "objects": {
+            "object": [{"source": {"id": "RIPE"}, "attributes": {"attribute": []}}]
         }
     }
 
     for i in yml_object:
-        construct['objects']['object'][0]['attributes'][
-            'attribute'].append({'name': list(i.keys())[0],
-                                    'value': i[list(i.keys())[0]]})
+        construct["objects"]["object"][0]["attributes"]["attribute"].append(
+            {"name": list(i.keys())[0], "value": i[list(i.keys())[0]]}
+        )
     return json.dumps(construct)
 
 
@@ -209,48 +219,52 @@ def json_to_yaml(json_payload):
     """
     objects = {}
 
-    for i in (json_payload['objects']['object']):
-        objects[i['primary-key']['attribute'][0]['value']] = []
-        for j in i['attributes']['attribute']:
-            if j['name'] != "last-modified":
-                objects[i['primary-key']['attribute'][0]['value']].append({
-                    j['name']:
-                    j['value']
-                })
-    yaml_out = yaml.dump(
-        yaml.full_load(json.dumps(objects)), default_flow_style=False)
+    for i in json_payload["objects"]["object"]:
+        objects[i["primary-key"]["attribute"][0]["value"]] = []
+        for j in i["attributes"]["attribute"]:
+            if j["name"] != "last-modified":
+                objects[i["primary-key"]["attribute"][0]["value"]].append(
+                    {j["name"]: j["value"]}
+                )
+    yaml_out = yaml.dump(yaml.full_load(json.dumps(objects)), default_flow_style=False)
     return yaml_out
 
 
 def ripe_normalize(ripe_obj):
     new_obj = []
     for i in ripe_obj:
-        new_obj.append({i['name']: i['value']})
+        new_obj.append({i["name"]: i["value"]})
 
-    return(new_obj)
+    return new_obj
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--db', required=True, help="Database URL")
+    parser.add_argument("--db", required=True, help="Database URL")
+    parser.add_argument("--objects", required=False, help="Objects to compare / write")
     parser.add_argument(
-        '--objects', required=False, help="Objects to compare / write")
+        "--dryrun",
+        required=False,
+        action="store_true",
+        help="Perform validation and not the upgrade",
+    )
     parser.add_argument(
-        '--dryrun', required=False, action='store_true', help="Perform validation and not the upgrade")
+        "--pwd", required=False, help="Password needed to write objects"
+    )
     parser.add_argument(
-        '--pwd', required=False, help="Password needed to write objects")
+        "--search", required=False, help="Search for a particular string"
+    )
     parser.add_argument(
-        '--search', required=False, help="Search for a particular string")
-    parser.add_argument(
-        '--attribute', required=False, help="Search for a specific attribute")
+        "--attribute", required=False, help="Search for a specific attribute"
+    )
     args = parser.parse_args()
 
     if args.objects:
 
         if not args.pwd:
             try:
-                pwd = os.environ['RIPE_PASSWORD']
+                pwd = os.environ["RIPE_PASSWORD"]
             except:
                 print("no password specified")
                 if not args.dryrun:
@@ -262,30 +276,45 @@ if __name__ == '__main__':
         for key in yml_objects.keys():
             type = list(yml_objects[key][0].keys())[0]
             name = key
-            print('')
-            print(type,key)
+            print("")
+            print(type, key)
             ripe_object = ripe_get(args.db, type, name, yml_objects[key])
             answer = eval_search(ripe_object, type, name)
             if answer == 0:
-                ripe_object = ripe_object['objects']['object'][0]['attributes']['attribute']
+                ripe_object = ripe_object["objects"]["object"][0]["attributes"][
+                    "attribute"
+                ]
                 ripe_obj = ripe_normalize(ripe_object)
                 ripe_comparison = object_comparator_lookup(ripe_obj, yml_objects[key])
                 local_comparison = object_comparator_lookup(yml_objects[key], ripe_obj)
                 strict_comparison = object_comparator_strict(yml_objects[key], ripe_obj)
 
-                if strict_comparison == 0 and ripe_comparison == 0 and local_comparison == 0:
+                if (
+                    strict_comparison == 0
+                    and ripe_comparison == 0
+                    and local_comparison == 0
+                ):
                     print("  Entries are consistent")
                 else:
                     print("  Entries are not consistent")
                     pprint(yml_objects[key])
                     json_output = yaml_to_json(yml_objects[key])
-                    ripe_update(args.db, pwd, json_output, key, type, args.dryrun, yml_objects[key])
+                    ripe_update(
+                        args.db,
+                        pwd,
+                        json_output,
+                        key,
+                        type,
+                        args.dryrun,
+                        yml_objects[key],
+                    )
 
             if answer == 1:
                 print("Object does not exists in the RIPE database")
                 json_output = yaml_to_json(yml_objects[key])
-                ripe_create(args.db, pwd, json_output, key, type, args.dryrun, yml_objects[key])
-
+                ripe_create(
+                    args.db, pwd, json_output, key, type, args.dryrun, yml_objects[key]
+                )
 
     if args.search:
         search_results = ripe_search(args.db, args.attribute, args.search)
