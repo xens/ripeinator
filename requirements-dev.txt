@@ -25,5 +25,5 @@ toml==0.10.1
 typed-ast==1.4.1
 typing-extensions==3.7.4.3
 urllib3==1.25.11
-virtualenv==20.0.35
+virtualenv==20.1.0
 wrapt==1.12.1
