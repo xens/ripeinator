@@ -76,10 +76,18 @@ def ripe_search(db, attribute, string):
     Search object in the RIPE database
     """
 
-    url = (
-        "%s/search?inverse-attribute=%s&source=ripe&query-string=%s&flags=no-filtering"
-        % (db, attribute, string)
-    )
+    # attribute for inverse search was given
+    if attribute:
+        url = (
+            "%s/search?inverse-attribute=%s&source=ripe&query-string=%s&flags=no-filtering"
+            % (db, attribute, string)
+        )
+    # doing a forward search (without showing/listing any referenced objects)
+    else:
+        url = (
+            "%s/search?source=ripe&query-string=%s&flags=no-filtering&flags=no-referenced"
+            % (db, string)
+        )
     headers = {"Accept": "application/json"}
     r = requests.get(url, headers=headers)
     output = json.loads(r.text)
@@ -317,8 +325,15 @@ if __name__ == "__main__":
                 )
 
     if args.search:
-        search_results = ripe_search(args.db, args.attribute, args.search)
-        answer = eval_search(search_results, args.attribute, args.search)
+        # inverse search for specific objects with specific attributes
+        if args.attribute:
+            search_results = ripe_search(args.db, args.attribute, args.search)
+            answer = eval_search(search_results, args.attribute, args.search)
+        # forward search for some object
+        else:
+            search_results = ripe_search(args.db, None, args.search)
+            answer = eval_search(search_results, None, args.search)
+
         if answer == 0:
             print(json_to_yaml(search_results))
         else:
