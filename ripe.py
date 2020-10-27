@@ -17,13 +17,10 @@ def ripe_create(db, pwd, json_output, key, type, dryrun, object_entries):
     if type == "route" or type == "route6":
         for i in object_entries:
             if list(i.keys())[0] == "origin":
-                key = "%s%s" % (key, i["origin"])
+                key = f"{key}{i['origin']}"
 
-    url = "https://rest.db.ripe.net/ripe/%s?password=%s&dry-run=%s" % (
-        type,
-        pwd,
-        dryrun,
-    )
+    url = f"{db}/ripe/{type}?password={pwd}&dry-run={dryrun}"
+
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json; charset=utf-8",
@@ -40,8 +37,8 @@ def ripe_get(db, type, object, object_entries):
     if type == "route" or type == "route6":
         for i in object_entries:
             if list(i.keys())[0] == "origin":
-                object = "%s%s" % (object, i["origin"])
-    url = "%s/ripe/%s/%s?unfiltered" % (db, type, object)
+                object = f"{object}{i['origin']}"
+    url = f"{db}/ripe/{type}/{object}?unfiltered"
     headers = {"Accept": "application/json"}
     r = requests.get(url, headers=headers)
     output = json.loads(r.text)
@@ -55,14 +52,9 @@ def ripe_update(db, pwd, json_output, key, type, dryrun, object_entries):
     if type == "route" or type == "route6":
         for i in object_entries:
             if list(i.keys())[0] == "origin":
-                key = "%s%s" % (key, i["origin"])
+                key = f"{key}{i['origin']}"
 
-    url = "https://rest.db.ripe.net/ripe/%s/%s?password=%s&dry-run=%s" % (
-        type,
-        key,
-        pwd,
-        dryrun,
-    )
+    url = f"{db}/ripe/{type}/{key}?password={pwd}&dry-run={dryrun}"
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json; charset=utf-8",
@@ -78,16 +70,10 @@ def ripe_search(db, attribute, string):
 
     # attribute for inverse search was given
     if attribute:
-        url = (
-            "%s/search?inverse-attribute=%s&source=ripe&query-string=%s&flags=no-filtering"
-            % (db, attribute, string)
-        )
+        url = f"{db}/search?inverse-attribute={attribute}&source=ripe&query-string={string}&flags=no-filtering"
     # doing a forward search (without showing/listing any referenced objects)
     else:
-        url = (
-            "%s/search?source=ripe&query-string=%s&flags=no-filtering&flags=no-referenced"
-            % (db, string)
-        )
+        url = f"{db}/search?source=ripe&query-string={string}&flags=no-filtering&flags=no-referenced"
     headers = {"Accept": "application/json"}
     r = requests.get(url, headers=headers)
     output = json.loads(r.text)
@@ -188,7 +174,7 @@ def eval_write_answer(status_code, text, dryrun):
         try:
             exists = json.loads(text)["errormessages"]["errormessage"][0]["text"]
         except:
-            print("  RIPE answer: %s" % text)
+            print(f"  RIPE answer: {text}")
         else:
             info = json.loads(text)["errormessages"]["errormessage"]
             for item in info:
@@ -201,7 +187,7 @@ def eval_write_answer(status_code, text, dryrun):
             print("  RIPE answer: upstream object written")
         else:
             output = json.loads(text)["errormessages"]["errormessage"][0]["text"]
-            print("  RIPE answer: %s" % output)
+            print(f"  RIPE answer: {output}")
 
 
 def yaml_to_json(yml_object):
@@ -274,7 +260,7 @@ if __name__ == "__main__":
             try:
                 pwd = os.environ["RIPE_PASSWORD"]
             except:
-                print("no password specified")
+                print(f"no password specified")
                 if not args.dryrun:
                     sys.exit(1)
         else:
@@ -302,9 +288,9 @@ if __name__ == "__main__":
                     and ripe_comparison == 0
                     and local_comparison == 0
                 ):
-                    print("  Entries are consistent")
+                    print(f"  Entries are consistent")
                 else:
-                    print("  Entries are not consistent")
+                    print(f"  Entries are not consistent")
                     pprint(yml_objects[key])
                     json_output = yaml_to_json(yml_objects[key])
                     ripe_update(
@@ -318,7 +304,7 @@ if __name__ == "__main__":
                     )
 
             if answer == 1:
-                print("Object does not exists in the RIPE database")
+                print(f"Object does not exists in the RIPE database")
                 json_output = yaml_to_json(yml_objects[key])
                 ripe_create(
                     args.db, pwd, json_output, key, type, args.dryrun, yml_objects[key]
