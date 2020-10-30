@@ -19,7 +19,12 @@ def ripe_create(db, pwd, json_output, key, type, dryrun, object_entries):
             if list(i.keys())[0] == "origin":
                 key = f"{key}{i['origin']}"
 
-    url = f"{db}/ripe/{type}?password={pwd}&dry-run={dryrun}"
+    # parameters for create request
+    params = dict()
+    params["password"] = pwd
+    params["dry-run"] = dryrun
+
+    url = f"{db}/ripe/{type}"
 
     headers = {
         "Content-Type": "application/json",
@@ -54,12 +59,18 @@ def ripe_update(db, pwd, json_output, key, type, dryrun, object_entries):
             if list(i.keys())[0] == "origin":
                 key = f"{key}{i['origin']}"
 
-    url = f"{db}/ripe/{type}/{key}?password={pwd}&dry-run={dryrun}"
+    # parameters for update request
+    params = dict()
+    params["password"] = pwd
+    params["dry-run"] = dryrun
+
+    url = f"{db}/ripe/{type}/{key}"
+
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json; charset=utf-8",
     }
-    r = requests.put(url, data=json_output, headers=headers)
+    r = requests.put(url, data=json_output, params=params, headers=headers)
     eval_write_answer(r.status_code, r.text, dryrun)
 
 
@@ -68,14 +79,19 @@ def ripe_search(db, attribute, string):
     Search object in the RIPE database
     """
 
-    # attribute for inverse search was given
+    # common parameters - used for forward and reverse search
+    params = dict()
+    params["source"] = "ripe"
+    params["query-string"] = string
+    params["flags"] = ("no-filtering", "no-referenced")
+
+    # if attribute given add to params dict - trigger inverse search
     if attribute:
-        url = f"{db}/search?inverse-attribute={attribute}&source=ripe&query-string={string}&flags=no-filtering"
-    # doing a forward search (without showing/listing any referenced objects)
-    else:
-        url = f"{db}/search?source=ripe&query-string={string}&flags=no-filtering&flags=no-referenced"
+        params["inverse-attribute"] = attribute
+
+    url = f"{db}/search"
     headers = {"Accept": "application/json"}
-    r = requests.get(url, headers=headers)
+    r = requests.get(url, params=params, headers=headers)
     output = json.loads(r.text)
     return output
 
@@ -235,8 +251,14 @@ def ripe_normalize(ripe_obj):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--db", required=True, help="Database URL")
-    parser.add_argument("--objects", required=False, help="Objects to compare / write")
+    parser.add_argument(
+        "--db", required=False, help="Database URL", default="https://rest.db.ripe.net"
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--objects", required=False, help="Objects to compare / write")
+    group.add_argument(
+        "--search", required=False, help="Search for a particular string"
+    )
     parser.add_argument(
         "--dryrun",
         required=False,
@@ -247,20 +269,21 @@ if __name__ == "__main__":
         "--pwd", required=False, help="Password needed to write objects"
     )
     parser.add_argument(
-        "--search", required=False, help="Search for a particular string"
-    )
-    parser.add_argument(
         "--attribute", required=False, help="Search for a specific attribute"
     )
     args = parser.parse_args()
 
+    # if cmdline arguments for objects are given
     if args.objects:
-
+        # check for password
+        ## if not given via cmdline try env var -> exit on error
         if not args.pwd:
             try:
                 pwd = os.environ["RIPE_PASSWORD"]
             except:
-                print(f"no password specified")
+                print(f"no RIPE_PASSWORD environment variable found")
+                print()
+                parser.print_usage()
                 if not args.dryrun:
                     sys.exit(1)
         else:
@@ -310,7 +333,8 @@ if __name__ == "__main__":
                     args.db, pwd, json_output, key, type, args.dryrun, yml_objects[key]
                 )
 
-    if args.search:
+    # else if cmdline argument for search is given
+    elif args.search:
         # inverse search for specific objects with specific attributes
         if args.attribute:
             search_results = ripe_search(args.db, args.attribute, args.search)
@@ -324,3 +348,7 @@ if __name__ == "__main__":
             print(json_to_yaml(search_results))
         else:
             sys.exit(1)
+
+    # if neither search nor objects are given -> print usage
+    else:
+        parser.print_usage()
