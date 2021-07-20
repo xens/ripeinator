@@ -3,7 +3,7 @@
 
 # dev requirements
 appdirs==1.4.4
-astroid==2.4.2
+astroid==2.6.4
 black==21.5b1
 cfgv==3.2.0
 click==7.1.2
