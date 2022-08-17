@@ -11,7 +11,7 @@ distlib==0.3.5
 filelock==3.0.12
 identify==2.2.11
 isort==5.10.1
-lazy-object-proxy==1.6.*
+lazy-object-proxy==1.7.*
 mccabe==0.7.0
 mypy-extensions==0.4.3
 nodeenv==1.7.0
