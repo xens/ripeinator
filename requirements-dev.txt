@@ -21,7 +21,7 @@ pre-commit==2.13.0
 regex==2022.7.25
 six==1.16.0
 toml==0.10.2
-typed-ast==1.4.3
+typed-ast==1.5.4
 typing-extensions==3.7.4.3
 virtualenv==20.16.3
 wrapt==1.12.1
