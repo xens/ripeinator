@@ -230,10 +230,16 @@ def json_to_yaml(json_payload):
     objects = {}
 
     for i in json_payload["objects"]["object"]:
-        objects[i["primary-key"]["attribute"][0]["value"]] = []
+        type = i["type"]
+        primaryKey = i["primary-key"]["attribute"]
+        objectKey = primaryKey[0]["value"]
+        if type == "route" or type == "route6":
+            origin = primaryKey[1]["value"]
+            objectKey = f"{objectKey}{origin}"
+        objects[objectKey] = []
         for j in i["attributes"]["attribute"]:
             if j["name"] != "last-modified":
-                objects[i["primary-key"]["attribute"][0]["value"]].append(
+                objects[objectKey].append(
                     {j["name"]: j["value"]}
                 )
     yaml_out = yaml.dump(yaml.full_load(json.dumps(objects)), default_flow_style=False)
