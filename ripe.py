@@ -30,7 +30,7 @@ def ripe_create(db, pwd, json_output, key, type, dryrun, object_entries):
         "Content-Type": "application/json",
         "Accept": "application/json; charset=utf-8",
     }
-    r = requests.post(url, data=json_output, headers=headers)
+    r = requests.post(url, data=json_output, params=params, headers=headers)
     # print (r.text)
     eval_write_answer(r.status_code, r.text, dryrun)
 
