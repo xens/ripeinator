@@ -8,7 +8,7 @@ from pprint import pprint
 import requests
 import sys
 import yaml
-
+import re
 
 def ripe_create(db, pwd, json_output, key, type, dryrun, object_entries):
     """
@@ -230,10 +230,16 @@ def json_to_yaml(json_payload):
     objects = {}
 
     for i in json_payload["objects"]["object"]:
-        objects[i["primary-key"]["attribute"][0]["value"]] = []
+        type = i["type"]
+        primary_key = i["primary-key"]["attribute"]
+        object_key = primary_key[0]["value"]
+        if type == "route" or type == "route6":
+            origin = primary_key[1]["value"]
+            object_key = f"{object_key}{origin}"
+        objects[object_key] = []
         for j in i["attributes"]["attribute"]:
             if j["name"] != "last-modified":
-                objects[i["primary-key"]["attribute"][0]["value"]].append(
+                objects[object_key].append(
                     {j["name"]: j["value"]}
                 )
     yaml_out = yaml.dump(yaml.full_load(json.dumps(objects)), default_flow_style=False)
@@ -292,7 +298,10 @@ if __name__ == "__main__":
         yml_objects = yaml_parser(args.objects)
         for key in yml_objects.keys():
             type = list(yml_objects[key][0].keys())[0]
-            name = key
+            if type == "route" or type == "route6":
+                name = re.sub('AS\d+$', '', key)
+            else:
+                name = key
             print("")
             print(type, key)
             ripe_object = ripe_get(args.db, type, name, yml_objects[key])
@@ -320,7 +329,7 @@ if __name__ == "__main__":
                         args.db,
                         pwd,
                         json_output,
-                        key,
+                        name,
                         type,
                         args.dryrun,
                         yml_objects[key],
@@ -330,7 +339,7 @@ if __name__ == "__main__":
                 print(f"Object does not exists in the RIPE database")
                 json_output = yaml_to_json(yml_objects[key])
                 ripe_create(
-                    args.db, pwd, json_output, key, type, args.dryrun, yml_objects[key]
+                    args.db, pwd, json_output, name, type, args.dryrun, yml_objects[key]
                 )
 
     # else if cmdline argument for search is given
